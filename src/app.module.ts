@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
+// import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
+// import KeyvRedis from '@keyv/redis';
 import { AppResolver } from './app.resolver';
 import { CustomersModule } from './modules/customers/customers.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
@@ -17,6 +19,22 @@ import { HealthController } from './health/health.controller';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+
+    // Redis cache temporarily disabled until local Redis is available
+    // CacheModule.registerAsync({
+    //   isGlobal: true,
+    //   inject: [ConfigService],
+    //   useFactory: async (configService: ConfigService) => {
+    //     const host = configService.get<string>('REDIS_HOST') || 'localhost';
+    //     const port = configService.get<string>('REDIS_PORT') || '6379';
+    //     const redisUrl = `redis://${host}:${port}`;
+    //
+    //     return {
+    //       stores: [new KeyvRedis(redisUrl)],
+    //       ttl: 60_000,
+    //     };
+    //   },
+    // }),
 
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
