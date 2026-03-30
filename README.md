@@ -19,6 +19,9 @@ This project was developed as a backend technical assessment for a banking scena
 - Health check endpoint
 - Database migrations
 - Seed script with demo data
+- Structured application logs
+- Unit and e2e testing
+- Redis caching layer (implemented, currently disabled locally)
 
 ---
 
@@ -26,11 +29,13 @@ This project was developed as a backend technical assessment for a banking scena
 
 - NestJS
 - TypeScript
-- GraphQL
-- Apollo Server
+- GraphQL (Apollo Server)
 - PostgreSQL
 - TypeORM
 - class-validator / ValidationPipe
+- Jest (testing)
+- Redis (cache layer)
+- ElasticSearch (optional integration planned)
 
 ---
 
@@ -38,23 +43,24 @@ This project was developed as a backend technical assessment for a banking scena
 
 The project is organized in a modular structure by domain:
 
-- `customers`
-- `accounts`
-- `transactions`
-- `exchange-rates`
+- customers
+- accounts
+- transactions
+- exchange-rates
 
-Each module contains its own:
+Each module contains:
 
 - DTOs
 - Entities
 - Resolvers
 - Services
 
-This separation keeps the codebase maintainable and makes it easier to extend business rules over time.
+This separation keeps the codebase maintainable and scalable for future business rules.
 
 ---
 
 ## Project Structure
+
 
 ```txt
 src/
@@ -173,6 +179,46 @@ http://localhost:3000/graphql
 Health Check
 http://localhost:3000/health
 
+## Logging
+
+The application includes structured logging using NestJS Logger.
+
+Logs include:
+
+Request lifecycle (via interceptor)
+Business operations (services)
+Error handling (global exception filter)
+
+Examples:
+
+```bash
+[Accounts] Fetch all requested
+[Deposit] Completed -> accountId=...
+[Transfer] Rejected -> reason=Insufficient funds
+```
+## Redis Cache (Current Status)
+
+Redis caching was implemented for:
+
+* customers
+* accounts
+* exchange rates
+
+Features:
+
+- Cache hit / miss logging
+- Cache invalidation on writes
+- TTL-based caching
+
+Note:
+
+Redis is temporarily disabled in code due to local environment limitations (Docker/Redis not available during development).
+
+The integration is fully prepared and can be enabled by:
+
+- uncommenting CacheModule in app.module.ts
+- uncommenting cache logic in services
+
 ## Business Rules Implemented
 
 Customers
@@ -221,6 +267,26 @@ This ensures:
 - balances are not partially updated
 - transaction records and balance changes are committed atomically
 - failures roll back safely
+
+## Testing
+
+Unit Tests
+
+Implemented for:
+
+* CustomersService
+* AccountsService
+* ExchangeRatesService
+* TransactionsService
+* E2E Test
+* Health endpoint
+
+Run tests:
+
+```bash
+npm test
+npm run test:e2e
+```
 
 ## Available Scripts
 
@@ -457,17 +523,15 @@ This makes the project easier to review and test immediately.
 ## Notes
 
 - Docker was considered for local infrastructure, but the project runs correctly using a local PostgreSQL installation.
-- Redis and ElasticSearch dependencies were included as part of the required stack and can be integrated further in a next iteration.
+- ElasticSearch dependencies were included as part of the required stack and can be integrated further in a next iteration.
 - Apollo local landing page / sandbox is used to test GraphQL operations.
+- The project runs fully with local PostgreSQL
+- Redis integration is implemented but disabled locally
 
 ## Future Improvements
 
-- Redis caching for read-heavy queries
 - ElasticSearch integration for search
-- structured logs
-- automated tests
 - role-based authentication
-- simple frontend dashboard for demo purposes
 
 ---
 
