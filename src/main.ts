@@ -1,9 +1,18 @@
-import { ValidationPipe } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './common/interceptors/all-exceptions.filter';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  const app = await NestFactory.create(AppModule, {
+    logger: isProduction
+      ? ['log', 'warn', 'error']
+      : ['log', 'warn', 'error', 'debug', 'verbose'],
+  });
 
   app.enableCors({
     origin: ['http://localhost:3001'],
@@ -18,7 +27,23 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT ?? 3000);
+  app.useGlobalInterceptors(new LoggingInterceptor());
+  app.useGlobalFilters(new AllExceptionsFilter());
+
+  const port = process.env.PORT ?? 3000;
+
+  await app.listen(port);
+
+  Logger.log(`Application running on http://localhost:${port}`, 'Bootstrap');
+  Logger.log(
+    `GraphQL available at http://localhost:${port}/graphql`,
+    'Bootstrap',
+  );
+  Logger.log(
+    `Health check available at http://localhost:${port}/health`,
+    'Bootstrap',
+  );
 }
+
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 bootstrap();
