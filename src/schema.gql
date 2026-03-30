@@ -1,0 +1,143 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Transaction {
+  id: ID!
+  type: TransactionType!
+  status: TransactionStatus!
+  amount: Float!
+  currency: Currency!
+  description: String
+  reference: String
+  sourceAccount: Account
+  destinationAccount: Account
+  createdAt: DateTime!
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  TRANSFER
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum Currency {
+  DOP
+  USD
+  EUR
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Account {
+  id: ID!
+  accountNumber: String!
+  currency: Currency!
+  status: AccountStatus!
+  balance: Float!
+  customer: Customer!
+  outgoingTransactions: [Transaction!]
+  incomingTransactions: [Transaction!]
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum AccountStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+type Customer {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  email: String!
+  documentNumber: String!
+  isActive: Boolean!
+  accounts: [Account!]
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type ExchangeRate {
+  id: ID!
+  fromCurrency: Currency!
+  toCurrency: Currency!
+  rate: Float!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Query {
+  healthCheck: String!
+  customers: [Customer!]!
+  customer(id: String!): Customer!
+  accounts: [Account!]!
+  account(id: String!): Account!
+  transactions(pagination: PaginationInput): [Transaction!]!
+  transaction(id: String!): Transaction!
+  exchangeRates: [ExchangeRate!]!
+  exchangeRate(id: String!): ExchangeRate!
+}
+
+input PaginationInput {
+  limit: Float
+  offset: Float
+}
+
+type Mutation {
+  createCustomer(createCustomerInput: CreateCustomerInput!): Customer!
+  createAccount(createAccountInput: CreateAccountInput!): Account!
+  deposit(depositInput: DepositInput!): Transaction!
+  withdraw(withdrawInput: WithdrawInput!): Transaction!
+  transfer(transferInput: TransferInput!): Transaction!
+  createExchangeRate(createExchangeRateInput: CreateExchangeRateInput!): ExchangeRate!
+}
+
+input CreateCustomerInput {
+  firstName: String!
+  lastName: String!
+  email: String!
+  documentNumber: String!
+}
+
+input CreateAccountInput {
+  accountNumber: String!
+  currency: Currency!
+  customerId: String!
+}
+
+input DepositInput {
+  accountId: String!
+  amount: Float!
+  description: String
+}
+
+input WithdrawInput {
+  accountId: String!
+  amount: Float!
+  description: String
+}
+
+input TransferInput {
+  sourceAccountId: String!
+  destinationAccountId: String!
+  amount: Float!
+  description: String
+}
+
+input CreateExchangeRateInput {
+  fromCurrency: Currency!
+  toCurrency: Currency!
+  rate: Float!
+}
