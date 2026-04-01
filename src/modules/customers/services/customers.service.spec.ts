@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Customer } from '../entities/customer.entity';
 import { CustomersService } from './customers.service';
+import { ElasticsearchService } from '../../../elasticsearch/elasticsearch.service';
 
 describe('CustomersService', () => {
   let service: CustomersService;
@@ -15,6 +15,12 @@ describe('CustomersService', () => {
     save: jest.Mock;
   };
 
+  let elasticsearchService: {
+    indexCustomer: jest.Mock;
+    bulkIndexCustomers: jest.Mock;
+    searchCustomers: jest.Mock;
+  };
+
   beforeEach(async () => {
     customerRepository = {
       findOne: jest.fn(),
@@ -23,12 +29,22 @@ describe('CustomersService', () => {
       save: jest.fn(),
     };
 
+    elasticsearchService = {
+      indexCustomer: jest.fn(),
+      bulkIndexCustomers: jest.fn(),
+      searchCustomers: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CustomersService,
         {
           provide: getRepositoryToken(Customer),
           useValue: customerRepository,
+        },
+        {
+          provide: ElasticsearchService,
+          useValue: elasticsearchService,
         },
       ],
     }).compile();
@@ -51,6 +67,7 @@ describe('CustomersService', () => {
     const createdCustomer = {
       id: 'customer-1',
       ...input,
+      isActive: true,
     };
 
     customerRepository.findOne
@@ -59,6 +76,7 @@ describe('CustomersService', () => {
 
     customerRepository.create.mockReturnValue(createdCustomer);
     customerRepository.save.mockResolvedValue(createdCustomer);
+    elasticsearchService.indexCustomer.mockResolvedValue(undefined);
 
     const result = await service.create(input as any);
 
@@ -66,6 +84,14 @@ describe('CustomersService', () => {
     expect(customerRepository.findOne).toHaveBeenCalledTimes(2);
     expect(customerRepository.create).toHaveBeenCalledWith(input);
     expect(customerRepository.save).toHaveBeenCalledWith(createdCustomer);
+    expect(elasticsearchService.indexCustomer).toHaveBeenCalledWith({
+      id: createdCustomer.id,
+      firstName: createdCustomer.firstName,
+      lastName: createdCustomer.lastName,
+      email: createdCustomer.email,
+      documentNumber: createdCustomer.documentNumber,
+      isActive: createdCustomer.isActive,
+    });
   });
 
   it('should throw ConflictException if email already exists', async () => {
@@ -87,6 +113,7 @@ describe('CustomersService', () => {
 
     expect(customerRepository.create).not.toHaveBeenCalled();
     expect(customerRepository.save).not.toHaveBeenCalled();
+    expect(elasticsearchService.indexCustomer).not.toHaveBeenCalled();
   });
 
   it('should throw ConflictException if document number already exists', async () => {
@@ -110,6 +137,7 @@ describe('CustomersService', () => {
 
     expect(customerRepository.create).not.toHaveBeenCalled();
     expect(customerRepository.save).not.toHaveBeenCalled();
+    expect(elasticsearchService.indexCustomer).not.toHaveBeenCalled();
   });
 
   it('should return all customers', async () => {

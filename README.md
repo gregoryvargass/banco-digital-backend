@@ -530,7 +530,6 @@ This makes the project easier to review and test immediately.
 
 ## Future Improvements
 
-- ElasticSearch integration for search
 - role-based authentication
 
 ---
