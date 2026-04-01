@@ -69,6 +69,15 @@ type Customer {
   updatedAt: DateTime!
 }
 
+type CustomerSearchResult {
+  id: String!
+  firstName: String!
+  lastName: String!
+  email: String!
+  documentNumber: String!
+  isActive: Boolean!
+}
+
 type ExchangeRate {
   id: ID!
   fromCurrency: Currency!
@@ -80,6 +89,7 @@ type ExchangeRate {
 
 type Query {
   healthCheck: String!
+  searchCustomers(term: String!): [CustomerSearchResult!]!
   customers: [Customer!]!
   customer(id: String!): Customer!
   accounts: [Account!]!
@@ -97,6 +107,7 @@ input PaginationInput {
 
 type Mutation {
   createCustomer(createCustomerInput: CreateCustomerInput!): Customer!
+  syncCustomersToSearch: Boolean!
   createAccount(createAccountInput: CreateAccountInput!): Account!
   deposit(depositInput: DepositInput!): Transaction!
   withdraw(withdrawInput: WithdrawInput!): Transaction!

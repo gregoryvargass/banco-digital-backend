@@ -13,6 +13,7 @@ import { TransactionsModule } from './modules/transactions/transactions.module';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { ExchangeRatesModule } from './modules/exchange-rates/exchange-rates.module';
 import { HealthController } from './health/health.controller';
+import { ElasticsearchModule } from './elasticsearch/elasticsearch.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { HealthController } from './health/health.controller';
     AccountsModule,
     TransactionsModule,
     ExchangeRatesModule,
+    ElasticsearchModule,
   ],
   providers: [AppResolver],
   controllers: [HealthController],

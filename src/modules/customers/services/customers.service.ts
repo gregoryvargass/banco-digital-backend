@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Customer } from '../entities/customer.entity';
 import { CreateCustomerInput } from '../dto/create-customer.input';
+import { ElasticsearchService } from '../../../elasticsearch/elasticsearch.service';
 // import { CACHE_MANAGER } from '@nestjs/cache-manager';
 // import type { Cache } from 'cache-manager';
 // import { CACHE_KEYS } from '../../../common/constants/cache-keys';
@@ -20,6 +21,8 @@ export class CustomersService {
   constructor(
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
+
+    private readonly elasticsearchService: ElasticsearchService,
 
     // Redis cache temporarily disabled until local Redis is available
     // @Inject(CACHE_MANAGER)
@@ -58,6 +61,15 @@ export class CustomersService {
     const customer = this.customerRepository.create(createCustomerInput);
     const savedCustomer = await this.customerRepository.save(customer);
 
+    await this.elasticsearchService.indexCustomer({
+      id: savedCustomer.id,
+      firstName: savedCustomer.firstName,
+      lastName: savedCustomer.lastName,
+      email: savedCustomer.email,
+      documentNumber: savedCustomer.documentNumber,
+      isActive: savedCustomer.isActive,
+    });
+
     // Redis cache temporarily disabled until local Redis is available
     // await this.cacheManager.del(CACHE_KEYS.CUSTOMERS_ALL);
     // await this.cacheManager.set(
@@ -71,6 +83,21 @@ export class CustomersService {
     );
 
     return savedCustomer;
+  }
+
+  async syncCustomersToSearch(): Promise<boolean> {
+    const customers = await this.customerRepository.find();
+
+    return await this.elasticsearchService.bulkIndexCustomers(
+      customers.map((customer) => ({
+        id: customer.id,
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        email: customer.email,
+        documentNumber: customer.documentNumber,
+        isActive: customer.isActive,
+      })),
+    );
   }
 
   async findAll(): Promise<Customer[]> {
