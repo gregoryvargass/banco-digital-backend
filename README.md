@@ -219,6 +219,43 @@ The integration is fully prepared and can be enabled by:
 - uncommenting CacheModule in app.module.ts
 - uncommenting cache logic in services
 
+## Elasticsearch
+
+Elasticsearch integration was added using the official Node.js client.
+
+Current implementation includes:
+
+- dedicated `ElasticsearchModule`
+- dedicated `ElasticsearchService`
+- customer indexing on creation
+- bulk synchronization for existing customers
+- GraphQL search support through `searchCustomers(term: String!)`
+- GraphQL synchronization support through `syncCustomersToSearch`
+
+### Purpose
+
+This integration was designed to support search capabilities beyond relational database filtering, especially for customer lookup scenarios by:
+
+- first name
+- last name
+- email
+- document number
+
+### How to Enable
+
+To activate Elasticsearch locally or in another environment:
+
+1. start an Elasticsearch node
+2. set the environment variables accordingly
+3. enable the integration in `.env`
+
+Example:
+
+```env
+ELASTICSEARCH_ENABLED=true
+ELASTICSEARCH_NODE=http://localhost:9200
+```
+
 ## Business Rules Implemented
 
 Customers
